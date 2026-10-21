@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { where } from 'firebase/firestore'
-import { createBooking } from '@/features/notes/actions/notes.actions'
+import { createBooking } from '@/features/bookings/actions/bookings.actions'
 import { useCollection } from '@/hooks/useFirestore'
 import { useAuth } from '@/hooks/useAuth'
 import { getBookingsCollection } from '@/lib/firebase/firestore'
@@ -13,7 +13,7 @@ import { getBookingsCollection } from '@/lib/firebase/firestore'
 const bookingFormSchema = z.object({ venueSize: z.enum(['small', 'medium', 'large']) })
 type BookingFormInput = z.infer<typeof bookingFormSchema>
 
-export function CreateNoteForm() {
+export function CreateBookingForm() {
   const { user } = useAuth()
   const { data: bookings, loading } = useCollection(
     getBookingsCollection(),

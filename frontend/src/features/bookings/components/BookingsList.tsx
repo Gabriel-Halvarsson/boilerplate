@@ -6,13 +6,13 @@ import { toast } from 'sonner'
 import { useCollection } from '@/hooks/useFirestore'
 import { useAuth } from '@/hooks/useAuth'
 import { getBookingsCollection } from '@/lib/firebase/firestore'
-import { updateBooking } from '@/features/notes/actions/notes.actions'
+import { updateBooking } from '@/features/bookings/actions/bookings.actions'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
 
 type VenueSize = 'small' | 'medium' | 'large'
 
-export function NotesList() {
+export function BookingsList() {
   const { user } = useAuth()
   const { data: bookings, loading } = useCollection(
     getBookingsCollection(),
