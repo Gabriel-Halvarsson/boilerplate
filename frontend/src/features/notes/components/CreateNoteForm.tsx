@@ -4,76 +4,69 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { createNote } from '@/features/notes/actions/notes.actions'
+import { where } from 'firebase/firestore'
+import { createBooking } from '@/features/notes/actions/notes.actions'
+import { useCollection } from '@/hooks/useFirestore'
+import { useAuth } from '@/hooks/useAuth'
+import { getBookingsCollection } from '@/lib/firebase/firestore'
 
-const createNoteFormSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200),
-  body: z.string().max(10_000),
-})
-
-type CreateNoteFormInput = z.infer<typeof createNoteFormSchema>
+const bookingFormSchema = z.object({ venueSize: z.enum(['small', 'medium', 'large']) })
+type BookingFormInput = z.infer<typeof bookingFormSchema>
 
 export function CreateNoteForm() {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<CreateNoteFormInput>({
-    resolver: zodResolver(createNoteFormSchema),
+  const { user } = useAuth()
+  const { data: bookings, loading } = useCollection(
+    getBookingsCollection(),
+    where('uid', '==', user?.uid ?? '')
+  )
+  const hasRequestedBooking = bookings.some((booking) => booking.status === 'requested')
+  const { setValue, watch, handleSubmit, formState: { errors, isSubmitting } } = useForm<BookingFormInput>({
+    resolver: zodResolver(bookingFormSchema),
+    defaultValues: { venueSize: 'small' },
   })
+  const selectedSize = watch('venueSize')
 
-  const onSubmit = async (data: CreateNoteFormInput) => {
-    const result = await createNote(data)
-    if (result.success) {
-      toast.success('Note created')
-      reset()
-    } else {
-      toast.error(result.error ?? 'Failed to create note')
-    }
+  const onSubmit = async (data: BookingFormInput) => {
+    if (hasRequestedBooking) return
+    const result = await createBooking(data)
+    if (result.success) toast.success('Venue requested')
+    else toast.error(result.error ?? 'Failed to request venue')
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-lg border p-4">
-      <div className="space-y-1.5">
-        <label htmlFor="title" className="text-sm font-medium">
-          Title
-        </label>
-        <input
-          id="title"
-          type="text"
-          aria-invalid={!!errors.title}
-          aria-describedby={errors.title ? 'title-error' : undefined}
-          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-500 focus:outline-none aria-invalid:border-red-500 dark:border-zinc-700 dark:bg-zinc-900"
-          placeholder="Note title"
-          {...register('title')}
-        />
-        {errors.title && (
-          <p id="title-error" className="text-xs text-red-500" role="alert">
-            {errors.title.message}
-          </p>
-        )}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Venue Size</label>
+        <div className="grid grid-cols-3 gap-3">
+          {(['small', 'medium', 'large'] as const).map((size) => (
+            <button
+              key={size}
+              type="button"
+              onClick={() => setValue('venueSize', size, { shouldValidate: true })}
+              aria-pressed={selectedSize === size}
+              className={`rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
+                selectedSize === size
+                  ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-black'
+                  : 'border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800'
+              }`}
+            >
+              {size.charAt(0).toUpperCase() + size.slice(1)}
+            </button>
+          ))}
+        </div>
+        {errors.venueSize && <p className="text-xs text-red-500">{errors.venueSize.message}</p>}
       </div>
-
-      <div className="space-y-1.5">
-        <label htmlFor="body" className="text-sm font-medium">
-          Body
-        </label>
-        <textarea
-          id="body"
-          rows={3}
-          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900"
-          placeholder="Write something..."
-          {...register('body')}
-        />
-      </div>
-
+      {hasRequestedBooking && (
+        <p className="text-sm text-zinc-500" role="status">
+          You already have a requested booking. You can request another venue once it is approved or denied.
+        </p>
+      )}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || loading || !user || hasRequestedBooking}
         className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
       >
-        {isSubmitting ? 'Saving…' : 'Add note'}
+        {isSubmitting ? 'Requesting…' : 'Request Venue'}
       </button>
     </form>
   )

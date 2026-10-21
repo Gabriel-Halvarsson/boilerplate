@@ -72,6 +72,14 @@ service cloud.firestore {
       allow delete: if false; // soft-delete only — set deletedAt instead
     }
 
+    // bookings/{bookingId}
+    // Booking requests are created by the authenticated server action.
+    // Clients may only read their own requests.
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.uid) && notDeleted();
+      allow create, update, delete: if false;
+    }
+
     // ── Default deny ───────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

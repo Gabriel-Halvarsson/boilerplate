@@ -6,30 +6,93 @@ import { requireAuth } from '@/actions/auth.actions'
 import { Timestamp } from 'firebase-admin/firestore'
 import type { ActionResult } from '@/types'
 
-const createNoteSchema = z.object({
-  title: z.string().min(1).max(200),
-  body: z.string().max(10_000),
+const venueSizeSchema = z.enum(['small', 'medium', 'large'])
+const createBookingSchema = z.object({ venueSize: venueSizeSchema })
+const updateBookingSchema = z.object({
+  bookingId: z.string().min(1),
+  venueSize: venueSizeSchema,
 })
 
-export async function createNote(input: unknown): Promise<ActionResult<string>> {
+export async function createBooking(input: unknown): Promise<ActionResult<string>> {
   const session = await requireAuth()
-
-  const parsed = createNoteSchema.safeParse(input)
+  const parsed = createBookingSchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid venue size' }
   }
 
   try {
-    const now = Timestamp.now()
-    const ref = await adminDb.collection('notes').add({
-      ...parsed.data,
-      uid: session.uid,
-      createdAt: now,
-      updatedAt: now,
-      _schemaVersion: 1,
+    const bookings = adminDb.collection('bookings')
+    // Also checks bookings created before this one-request limit was introduced.
+    const existing = await bookings.where('uid', '==', session.uid).get()
+    if (existing.docs.some((doc) => doc.data().status === 'requested')) {
+      return { success: false, error: 'You already have a requested booking' }
+    }
+
+    // One lock document per user ensures simultaneous submissions cannot both succeed.
+    const lockRef = adminDb.collection('bookingRequestLocks').doc(session.uid)
+    const newBookingRef = bookings.doc()
+    const created = await adminDb.runTransaction(async (transaction) => {
+      const lock = await transaction.get(lockRef)
+      if (lock.exists) {
+        const activeId = lock.data()?.bookingId
+        if (typeof activeId !== 'string') throw new Error('REQUEST_EXISTS')
+        const previous = await transaction.get(bookings.doc(activeId))
+        if (previous.exists && previous.data()?.status === 'requested') {
+          throw new Error('REQUEST_EXISTS')
+        }
+      }
+
+      const now = Timestamp.now()
+      transaction.create(newBookingRef, {
+        venueSize: parsed.data.venueSize,
+        status: 'requested',
+        uid: session.uid,
+        createdAt: now,
+        updatedAt: now,
+        _schemaVersion: 1,
+      })
+      transaction.set(lockRef, { bookingId: newBookingRef.id })
+      return newBookingRef.id
     })
-    return { success: true, data: ref.id }
-  } catch {
-    return { success: false, error: 'Failed to create note' }
+    return { success: true, data: created }
+  } catch (error) {
+    if (error instanceof Error && error.message === 'REQUEST_EXISTS') {
+      return { success: false, error: 'You already have a requested booking' }
+    }
+    return { success: false, error: 'Failed to request venue' }
+  }
+}
+
+export async function updateBooking(input: unknown): Promise<ActionResult<string>> {
+  const session = await requireAuth()
+  const parsed = updateBookingSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid booking details' }
+  }
+
+  try {
+    const ref = adminDb.collection('bookings').doc(parsed.data.bookingId)
+    await adminDb.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref)
+      if (!snapshot.exists || snapshot.data()?.uid !== session.uid) {
+        throw new Error('NOT_FOUND')
+      }
+      if (snapshot.data()?.status !== 'requested') {
+        throw new Error('NOT_EDITABLE')
+      }
+      transaction.update(ref, {
+        venueSize: parsed.data.venueSize,
+        updatedAt: Timestamp.now(),
+      })
+    })
+    return { success: true, data: parsed.data.bookingId }
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NOT_FOUND') {
+      return { success: false, error: 'Booking not found' }
+    }
+    if (error instanceof Error && error.message === 'NOT_EDITABLE') {
+      return { success: false, error: 'Only requested bookings can be edited' }
+    }
+    return { success: false, error: 'Failed to update booking' }
   }
 }

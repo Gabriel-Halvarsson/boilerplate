@@ -31,3 +31,15 @@ export interface Note {
   updatedAt: Timestamp
   _schemaVersion: 1
 }
+
+export type VenueSize = 'small' | 'medium' | 'large'
+
+export interface Booking {
+  id: string
+  uid: string
+  venueSize: VenueSize
+  status: 'requested'
+  createdAt: Timestamp
+  updatedAt: Timestamp
+  _schemaVersion: 1
+}
