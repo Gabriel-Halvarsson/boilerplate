@@ -3,7 +3,7 @@
 import { z } from 'zod'
 import { Timestamp } from 'firebase-admin/firestore'
 import { adminDb } from '@/lib/firebase/admin'
-import { requireAuth } from '@/actions/auth.actions'
+import { requireAdmin } from '@/actions/auth.actions'
 import type { ActionResult } from '@/types'
 
 export type ManagedBooking = {
@@ -25,7 +25,7 @@ const decisionSchema = z.object({
 })
 
 export async function getAllBookings(): Promise<ActionResult<ManagedBooking[]>> {
-  await requireAuth()
+  await requireAdmin()
   try {
     const snapshot = await adminDb.collection('bookings').get()
     const bookings: ManagedBooking[] = snapshot.docs.flatMap((doc) => {
@@ -42,7 +42,7 @@ export async function getAllBookings(): Promise<ActionResult<ManagedBooking[]>> 
 }
 
 export async function decideBooking(input: unknown): Promise<ActionResult<string>> {
-  await requireAuth()
+  await requireAdmin()
   const parsed = decisionSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid booking decision' }
 

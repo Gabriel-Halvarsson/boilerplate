@@ -1,6 +1,6 @@
 'use server'
 
-import { adminAuth } from '@/lib/firebase/admin'
+import { adminAuth, adminDb } from '@/lib/firebase/admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { ActionResult } from '@/types'
@@ -48,4 +48,15 @@ export async function serverSignOut(): Promise<ActionResult> {
   } catch {
     return { success: false, error: 'Failed to sign out' }
   }
+}
+
+/** Require an administrator role for privileged server-side operations. */
+export async function requireAdmin() {
+  const session = await requireAuth()
+  const profile = await adminDb.collection('users').doc(session.uid).get()
+  if (profile.data()?.role !== 'admin') {
+    // Hide the privileged page from non-admin users.
+    redirect('/dashboard')
+  }
+  return session
 }

@@ -4,12 +4,11 @@ import { LayoutDashboard, CalendarDays, ClipboardCheck, User, Settings } from 'l
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/bookings', label: 'Bookings', icon: CalendarDays },
-  { href: '/manage-bookings', label: 'Manage Bookings', icon: ClipboardCheck },
   { href: '/profile', label: 'Profile', icon: User },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
-export function Sidebar() {
+export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
   return (
     <aside className="hidden lg:flex w-60 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
       <div className="flex h-14 items-center px-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -18,7 +17,9 @@ export function Sidebar() {
         </span>
       </div>
       <nav className="flex-1 p-3 space-y-1">
-        {navItems.map(({ href, label, icon: Icon }) => (
+        {(isAdmin
+          ? [...navItems.slice(0, 2), { href: '/manage-bookings', label: 'Manage Bookings', icon: ClipboardCheck }, ...navItems.slice(2)]
+          : navItems).map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
