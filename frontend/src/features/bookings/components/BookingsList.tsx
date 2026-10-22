@@ -57,6 +57,16 @@ export function BookingsList() {
                   {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                 </span>
               </div>
+              {booking.status === 'denied' && booking.denialReason && (
+                <div className="mt-3 rounded-md border p-3">
+                  <p className="text-sm font-medium">
+                    Reason for Denial
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm">
+                    {booking.denialReason}
+                  </p>
+                </div>
+              )}
               {booking.status === 'requested' && (
                 editingId === booking.id ? (
                   <div className="space-y-3 border-t pt-3">

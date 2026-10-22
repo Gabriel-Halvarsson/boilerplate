@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { LayoutDashboard, CalendarDays, User, Settings } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, ClipboardCheck, User, Settings } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/bookings', label: 'Bookings', icon: CalendarDays },
+  { href: '/manage-bookings', label: 'Manage Bookings', icon: ClipboardCheck },
   { href: '/profile', label: 'Profile', icon: User },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
