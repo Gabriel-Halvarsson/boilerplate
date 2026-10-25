@@ -12,6 +12,7 @@ import { getBookingsCollection } from '@/lib/firebase/firestore'
 
 const bookingFormSchema = z.object({
   companyName: z.string().trim().min(1, 'Company name is required').max(200),
+  contactEmail: z.string().trim().email('Enter a valid contact email').max(254),
   venueSize: z.enum(['small', 'medium', 'large']),
 })
 type BookingFormInput = z.infer<typeof bookingFormSchema>
@@ -25,7 +26,7 @@ export function CreateBookingForm() {
   const hasRequestedBooking = bookings.some((booking) => booking.status === 'requested')
   const { register, setValue, watch, handleSubmit, formState: { errors, isSubmitting } } = useForm<BookingFormInput>({
     resolver: zodResolver(bookingFormSchema),
-    defaultValues: { companyName: '', venueSize: 'small' },
+    defaultValues: { companyName: '', contactEmail: '', venueSize: 'small' },
   })
   const selectedSize = watch('venueSize')
 
@@ -53,6 +54,24 @@ export function CreateBookingForm() {
         {errors.companyName && (
           <p id="companyName-error" className="text-xs text-red-500" role="alert">
             {errors.companyName.message}
+          </p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="contactEmail" className="text-sm font-medium">Contact Email</label>
+        <input
+          id="contactEmail"
+          type="email"
+          maxLength={254}
+          aria-invalid={!!errors.contactEmail}
+          aria-describedby={errors.contactEmail ? 'contactEmail-error' : undefined}
+          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          placeholder="Enter your contact email"
+          {...register('contactEmail')}
+        />
+        {errors.contactEmail && (
+          <p id="contactEmail-error" className="text-xs text-red-500" role="alert">
+            {errors.contactEmail.message}
           </p>
         )}
       </div>

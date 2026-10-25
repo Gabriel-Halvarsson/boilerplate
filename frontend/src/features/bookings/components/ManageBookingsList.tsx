@@ -70,6 +70,7 @@ export function ManageBookingsList() {
                 <div>
                   <h3 className="font-medium">{booking.venueSize[0].toUpperCase() + booking.venueSize.slice(1)} Venue</h3>
                   {booking.companyName && <p className="text-sm">{booking.companyName}</p>}
+                  <p className="text-sm">{booking.contactEmail}</p>
                   <p className="text-sm text-zinc-500">Vendor ID: {booking.uid}</p>
                   <p className="text-sm text-zinc-500">Australian Grand Prix</p>
                 </div>

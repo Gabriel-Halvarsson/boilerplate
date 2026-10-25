@@ -21,6 +21,7 @@ export function BookingsList() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editedSize, setEditedSize] = useState<VenueSize>('small')
   const [editedCompanyName, setEditedCompanyName] = useState('')
+  const [editedContactEmail, setEditedContactEmail] = useState('')
   const [saving, setSaving] = useState(false)
 
   const save = async (bookingId: string) => {
@@ -29,9 +30,14 @@ export function BookingsList() {
       toast.error('Company name must be between 1 and 200 characters')
       return
     }
+    const contactEmail = editedContactEmail.trim()
+    if (contactEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+      toast.error('Enter a valid contact email')
+      return
+    }
     setSaving(true)
     try {
-      const result = await updateBooking({ bookingId, venueSize: editedSize, companyName })
+      const result = await updateBooking({ bookingId, venueSize: editedSize, companyName, contactEmail })
       if (result.success) {
         toast.success('Booking updated')
         setEditingId(null)
@@ -60,6 +66,7 @@ export function BookingsList() {
                   {booking.companyName && (
                     <p className="mt-1 text-sm">{booking.companyName}</p>
                   )}
+                  <p className="mt-1 text-sm">{booking.contactEmail}</p>
                   <p className="mt-1 text-sm text-zinc-500">Australian Grand Prix</p>
                 </div>
                 <span className="shrink-0 rounded-md border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
@@ -87,6 +94,19 @@ export function BookingsList() {
                         value={editedCompanyName}
                         onChange={(event) => setEditedCompanyName(event.target.value)}
                         maxLength={200}
+                        required
+                        disabled={saving}
+                        className="w-full rounded-md border px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label htmlFor={`contact-email-${booking.id}`} className="text-sm font-medium">Contact Email</label>
+                      <input
+                        id={`contact-email-${booking.id}`}
+                        type="email"
+                        value={editedContactEmail}
+                        onChange={(event) => setEditedContactEmail(event.target.value)}
+                        maxLength={254}
                         required
                         disabled={saving}
                         className="w-full rounded-md border px-3 py-2 text-sm"
@@ -122,7 +142,7 @@ export function BookingsList() {
                   </div>
                 ) : (
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => { setEditingId(booking.id); setEditedSize(booking.venueSize); setEditedCompanyName(booking.companyName ?? '') }} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                    <button type="button" onClick={() => { setEditingId(booking.id); setEditedSize(booking.venueSize); setEditedCompanyName(booking.companyName); setEditedContactEmail(booking.contactEmail) }} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">
                       Edit Booking
                     </button>
                   </div>

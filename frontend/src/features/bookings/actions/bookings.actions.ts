@@ -6,14 +6,17 @@ import { requireAuth } from '@/actions/auth.actions'
 import { Timestamp } from 'firebase-admin/firestore'
 import type { ActionResult } from '@/types'
 
+const contactEmailSchema = z.string().trim().email('Enter a valid contact email').max(254)
 const venueSizeSchema = z.enum(['small', 'medium', 'large'])
 const createBookingSchema = z.object({
   companyName: z.string().trim().min(1, 'Company name is required').max(200),
+  contactEmail: contactEmailSchema,
   venueSize: venueSizeSchema,
 })
 const updateBookingSchema = z.object({
   bookingId: z.string().min(1),
   companyName: z.string().trim().min(1, 'Company name is required').max(200),
+  contactEmail: contactEmailSchema,
   venueSize: venueSizeSchema,
 })
 
@@ -50,6 +53,7 @@ export async function createBooking(input: unknown): Promise<ActionResult<string
       transaction.create(newBookingRef, {
         venueSize: parsed.data.venueSize,
         companyName: parsed.data.companyName,
+        contactEmail: parsed.data.contactEmail,
         status: 'requested',
         uid: session.uid,
         createdAt: now,
@@ -87,6 +91,7 @@ export async function updateBooking(input: unknown): Promise<ActionResult<string
       }
       transaction.update(ref, {
         companyName: parsed.data.companyName,
+        contactEmail: parsed.data.contactEmail,
         venueSize: parsed.data.venueSize,
         updatedAt: Timestamp.now(),
       })

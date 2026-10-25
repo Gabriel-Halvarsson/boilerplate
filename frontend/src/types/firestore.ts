@@ -29,6 +29,7 @@ export interface Booking {
   uid: string
   venueSize: VenueSize
   companyName: string
+  contactEmail: string
   status: 'requested' | 'approved' | 'denied'
   denialReason?: string
   createdAt: Timestamp
