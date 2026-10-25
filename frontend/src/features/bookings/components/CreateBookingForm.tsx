@@ -13,6 +13,7 @@ import { getBookingsCollection } from '@/lib/firebase/firestore'
 const bookingFormSchema = z.object({
   companyName: z.string().trim().min(1, 'Company name is required').max(200),
   contactEmail: z.string().trim().email('Enter a valid contact email').max(254),
+  venueType: z.enum(['food', 'merch', 'other']),
   venueSize: z.enum(['small', 'medium', 'large']),
 })
 type BookingFormInput = z.infer<typeof bookingFormSchema>
@@ -26,7 +27,7 @@ export function CreateBookingForm() {
   const hasRequestedBooking = bookings.some((booking) => booking.status === 'requested')
   const { register, setValue, watch, handleSubmit, formState: { errors, isSubmitting } } = useForm<BookingFormInput>({
     resolver: zodResolver(bookingFormSchema),
-    defaultValues: { companyName: '', contactEmail: '', venueSize: 'small' },
+    defaultValues: { companyName: '', contactEmail: '', venueType: 'food', venueSize: 'small' },
   })
   const selectedSize = watch('venueSize')
 
@@ -74,6 +75,20 @@ export function CreateBookingForm() {
             {errors.contactEmail.message}
           </p>
         )}
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="venueType" className="text-sm font-medium">Venue Type</label>
+        <select
+          id="venueType"
+          aria-invalid={!!errors.venueType}
+          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          {...register('venueType')}
+        >
+          <option value="food">Food</option>
+          <option value="merch">Merch</option>
+          <option value="other">Other</option>
+        </select>
+        {errors.venueType && <p className="text-xs text-red-500" role="alert">{errors.venueType.message}</p>}
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Venue Size</label>

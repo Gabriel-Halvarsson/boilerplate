@@ -23,6 +23,7 @@ export interface UserProfile {
 export type CreateUserProfileInput = Omit<UserProfile, 'createdAt' | 'updatedAt'>
 
 export type VenueSize = 'small' | 'medium' | 'large'
+export type VenueType = 'food' | 'merch' | 'other'
 
 export interface Booking {
   id: string
@@ -30,6 +31,7 @@ export interface Booking {
   venueSize: VenueSize
   companyName: string
   contactEmail: string
+  venueType: VenueType
   status: 'requested' | 'approved' | 'denied'
   denialReason?: string
   createdAt: Timestamp
