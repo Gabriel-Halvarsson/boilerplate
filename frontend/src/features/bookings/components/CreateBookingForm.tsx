@@ -10,7 +10,10 @@ import { useCollection } from '@/hooks/useFirestore'
 import { useAuth } from '@/hooks/useAuth'
 import { getBookingsCollection } from '@/lib/firebase/firestore'
 
-const bookingFormSchema = z.object({ venueSize: z.enum(['small', 'medium', 'large']) })
+const bookingFormSchema = z.object({
+  companyName: z.string().trim().min(1, 'Company name is required').max(200),
+  venueSize: z.enum(['small', 'medium', 'large']),
+})
 type BookingFormInput = z.infer<typeof bookingFormSchema>
 
 export function CreateBookingForm() {
@@ -20,9 +23,9 @@ export function CreateBookingForm() {
     where('uid', '==', user?.uid ?? '')
   )
   const hasRequestedBooking = bookings.some((booking) => booking.status === 'requested')
-  const { setValue, watch, handleSubmit, formState: { errors, isSubmitting } } = useForm<BookingFormInput>({
+  const { register, setValue, watch, handleSubmit, formState: { errors, isSubmitting } } = useForm<BookingFormInput>({
     resolver: zodResolver(bookingFormSchema),
-    defaultValues: { venueSize: 'small' },
+    defaultValues: { companyName: '', venueSize: 'small' },
   })
   const selectedSize = watch('venueSize')
 
@@ -35,6 +38,24 @@ export function CreateBookingForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-lg border p-4">
+      <div className="space-y-2">
+        <label htmlFor="companyName" className="text-sm font-medium">Company Name</label>
+        <input
+          id="companyName"
+          type="text"
+          maxLength={200}
+          aria-invalid={!!errors.companyName}
+          aria-describedby={errors.companyName ? 'companyName-error' : undefined}
+          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          placeholder="Enter your company name"
+          {...register('companyName')}
+        />
+        {errors.companyName && (
+          <p id="companyName-error" className="text-xs text-red-500" role="alert">
+            {errors.companyName.message}
+          </p>
+        )}
+      </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Venue Size</label>
         <div className="grid grid-cols-3 gap-3">

@@ -10,6 +10,7 @@ export type ManagedBooking = {
   id: string
   uid: string
   venueSize: 'small' | 'medium' | 'large'
+  companyName?: string
   status: 'requested' | 'approved' | 'denied'
   denialReason?: string
 }
@@ -33,7 +34,7 @@ export async function getAllBookings(): Promise<ActionResult<ManagedBooking[]>> 
       if (!['small', 'medium', 'large'].includes(data.venueSize) ||
           !['requested', 'approved', 'denied'].includes(data.status) ||
           typeof data.uid !== 'string') return []
-      return [{ id: doc.id, uid: data.uid, venueSize: data.venueSize, status: data.status, ...(typeof data.denialReason === 'string' ? { denialReason: data.denialReason } : {}) }]
+      return [{ id: doc.id, uid: data.uid, venueSize: data.venueSize, status: data.status, ...(typeof data.companyName === 'string' ? { companyName: data.companyName } : {}), ...(typeof data.denialReason === 'string' ? { denialReason: data.denialReason } : {}) }]
     })
     return { success: true, data: bookings }
   } catch {

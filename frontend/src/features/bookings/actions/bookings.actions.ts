@@ -7,9 +7,13 @@ import { Timestamp } from 'firebase-admin/firestore'
 import type { ActionResult } from '@/types'
 
 const venueSizeSchema = z.enum(['small', 'medium', 'large'])
-const createBookingSchema = z.object({ venueSize: venueSizeSchema })
+const createBookingSchema = z.object({
+  companyName: z.string().trim().min(1, 'Company name is required').max(200),
+  venueSize: venueSizeSchema,
+})
 const updateBookingSchema = z.object({
   bookingId: z.string().min(1),
+  companyName: z.string().trim().min(1, 'Company name is required').max(200),
   venueSize: venueSizeSchema,
 })
 
@@ -45,6 +49,7 @@ export async function createBooking(input: unknown): Promise<ActionResult<string
       const now = Timestamp.now()
       transaction.create(newBookingRef, {
         venueSize: parsed.data.venueSize,
+        companyName: parsed.data.companyName,
         status: 'requested',
         uid: session.uid,
         createdAt: now,
@@ -81,6 +86,7 @@ export async function updateBooking(input: unknown): Promise<ActionResult<string
         throw new Error('NOT_EDITABLE')
       }
       transaction.update(ref, {
+        companyName: parsed.data.companyName,
         venueSize: parsed.data.venueSize,
         updatedAt: Timestamp.now(),
       })

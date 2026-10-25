@@ -20,12 +20,18 @@ export function BookingsList() {
   )
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editedSize, setEditedSize] = useState<VenueSize>('small')
+  const [editedCompanyName, setEditedCompanyName] = useState('')
   const [saving, setSaving] = useState(false)
 
   const save = async (bookingId: string) => {
+    const companyName = editedCompanyName.trim()
+    if (!companyName || companyName.length > 200) {
+      toast.error('Company name must be between 1 and 200 characters')
+      return
+    }
     setSaving(true)
     try {
-      const result = await updateBooking({ bookingId, venueSize: editedSize })
+      const result = await updateBooking({ bookingId, venueSize: editedSize, companyName })
       if (result.success) {
         toast.success('Booking updated')
         setEditingId(null)
@@ -51,6 +57,9 @@ export function BookingsList() {
                   <h3 className="font-medium">
                     {booking.venueSize.charAt(0).toUpperCase() + booking.venueSize.slice(1)} Venue
                   </h3>
+                  {booking.companyName && (
+                    <p className="mt-1 text-sm">{booking.companyName}</p>
+                  )}
                   <p className="mt-1 text-sm text-zinc-500">Australian Grand Prix</p>
                 </div>
                 <span className="shrink-0 rounded-md border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
@@ -70,6 +79,19 @@ export function BookingsList() {
               {booking.status === 'requested' && (
                 editingId === booking.id ? (
                   <div className="space-y-3 border-t pt-3">
+                    <div className="space-y-1.5">
+                      <label htmlFor={`company-name-${booking.id}`} className="text-sm font-medium">Company Name</label>
+                      <input
+                        id={`company-name-${booking.id}`}
+                        type="text"
+                        value={editedCompanyName}
+                        onChange={(event) => setEditedCompanyName(event.target.value)}
+                        maxLength={200}
+                        required
+                        disabled={saving}
+                        className="w-full rounded-md border px-3 py-2 text-sm"
+                      />
+                    </div>
                     <p className="text-sm font-medium">Change venue size</p>
                     <div className="grid grid-cols-3 gap-3">
                       {(['small', 'medium', 'large'] as const).map((size) => (
@@ -100,7 +122,7 @@ export function BookingsList() {
                   </div>
                 ) : (
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => { setEditingId(booking.id); setEditedSize(booking.venueSize) }} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                    <button type="button" onClick={() => { setEditingId(booking.id); setEditedSize(booking.venueSize); setEditedCompanyName(booking.companyName ?? '') }} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">
                       Edit Booking
                     </button>
                   </div>
