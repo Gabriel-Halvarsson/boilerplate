@@ -1,17 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { where } from 'firebase/firestore'
 import { toast } from 'sonner'
 import { useCollection } from '@/hooks/useFirestore'
 import { useAuth } from '@/hooks/useAuth'
 import { getBookingsCollection } from '@/lib/firebase/firestore'
-import { updateBooking } from '@/features/bookings/actions/bookings.actions'
+import { updateBooking, getSectionCapacity, type SectionCapacity } from '@/features/bookings/actions/bookings.actions'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
 
 type VenueSize = 'small' | 'medium' | 'large'
 type VenueType = 'food' | 'merch' | 'other'
+type Section = 'A' | 'B' | 'C' | 'D' | 'E'
 
 export function BookingsList() {
   const { user } = useAuth()
@@ -24,6 +25,19 @@ export function BookingsList() {
   const [editedCompanyName, setEditedCompanyName] = useState('')
   const [editedContactEmail, setEditedContactEmail] = useState('')
   const [editedVenueType, setEditedVenueType] = useState<VenueType>('food')
+  const [editedSection, setEditedSection] = useState<Section>('A')
+  const [capacity, setCapacity] = useState<SectionCapacity | null>(null)
+  useEffect(() => {
+    let active = true
+    const refresh = async () => {
+      const result = await getSectionCapacity()
+      if (active) setCapacity(result.success ? result.data ?? null : null)
+    }
+    void refresh()
+    window.addEventListener('focus', refresh)
+    return () => { active = false; window.removeEventListener('focus', refresh) }
+  }, [])
+  const sectionFull = capacity !== null && capacity[editedSection] >= 5
   const [saving, setSaving] = useState(false)
 
   const save = async (bookingId: string) => {
@@ -37,9 +51,10 @@ export function BookingsList() {
       toast.error('Enter a valid contact email')
       return
     }
+    if (!capacity || sectionFull) { toast.error(`Section ${editedSection} is at capacity or availability is unavailable`); return }
     setSaving(true)
     try {
-      const result = await updateBooking({ bookingId, venueSize: editedSize, companyName, contactEmail, venueType: editedVenueType })
+      const result = await updateBooking({ bookingId, venueSize: editedSize, companyName, contactEmail, venueType: editedVenueType, section: editedSection })
       if (result.success) {
         toast.success('Booking updated')
         setEditingId(null)
@@ -69,6 +84,7 @@ export function BookingsList() {
                     <p className="mt-1 text-sm">{booking.companyName}</p>
                   )}
                   <p className="mt-1 text-sm">{booking.contactEmail}</p>
+                  <p className="mt-1 text-sm">Albert Park Section {booking.section}</p>
                   <p className="mt-1 text-sm">Venue Type: {booking.venueType.charAt(0).toUpperCase() + booking.venueType.slice(1)}</p>
                   <p className="mt-1 text-sm text-zinc-500">Australian Grand Prix</p>
                 </div>
@@ -129,13 +145,24 @@ export function BookingsList() {
                         <option value="other">Other</option>
                       </select>
                     </div>
+                    <div className="space-y-1.5">
+                      <label htmlFor={`section-${booking.id}`} className="text-sm font-medium">Albert Park Section</label>
+                      <select id={`section-${booking.id}`} value={editedSection}
+                        onChange={(event) => setEditedSection(event.target.value as Section)}
+                        disabled={saving} className="w-full rounded-md border px-3 py-2 text-sm">
+                        {(['A', 'B', 'C', 'D', 'E'] as const).map((section) => (
+                          <option key={section} value={section}>Albert Park Section {section}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {sectionFull && <p className="text-sm text-zinc-500" role="status">Section {editedSection} is at capacity.</p>}
                     <p className="text-sm font-medium">Change venue size</p>
                     <div className="grid grid-cols-3 gap-3">
                       {(['small', 'medium', 'large'] as const).map((size) => (
                         <button
                           key={size}
                           type="button"
-                          disabled={saving}
+                          disabled={saving || sectionFull || !capacity}
                           onClick={() => setEditedSize(size)}
                           aria-pressed={editedSize === size}
                           className={`rounded-lg border px-4 py-3 text-sm font-medium transition-colors disabled:opacity-50 ${
@@ -149,7 +176,7 @@ export function BookingsList() {
                       ))}
                     </div>
                     <div className="flex gap-2">
-                      <button type="button" disabled={saving} onClick={() => save(booking.id)} className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black">
+                      <button type="button" disabled={saving || sectionFull || !capacity} onClick={() => save(booking.id)} className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black">
                         {saving ? 'Saving…' : 'Save Changes'}
                       </button>
                       <button type="button" disabled={saving} onClick={() => setEditingId(null)} className="rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50">
@@ -159,7 +186,7 @@ export function BookingsList() {
                   </div>
                 ) : (
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => { setEditingId(booking.id); setEditedSize(booking.venueSize); setEditedCompanyName(booking.companyName); setEditedContactEmail(booking.contactEmail); setEditedVenueType(booking.venueType) }} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                    <button type="button" onClick={() => { setEditingId(booking.id); setEditedSize(booking.venueSize); setEditedCompanyName(booking.companyName); setEditedContactEmail(booking.contactEmail); setEditedVenueType(booking.venueType); setEditedSection(booking.section) }} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">
                       Edit Booking
                     </button>
                   </div>

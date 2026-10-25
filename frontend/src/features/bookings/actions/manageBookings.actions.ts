@@ -13,6 +13,7 @@ export type ManagedBooking = {
   companyName: string
   contactEmail: string
   venueType: 'food' | 'merch' | 'other'
+  section: 'A' | 'B' | 'C' | 'D' | 'E'
   status: 'requested' | 'approved' | 'denied'
   denialReason?: string
 }
@@ -37,8 +38,9 @@ export async function getAllBookings(): Promise<ActionResult<ManagedBooking[]>> 
           !['requested', 'approved', 'denied'].includes(data.status) ||
           typeof data.uid !== 'string' ||
           typeof data.companyName !== 'string' || typeof data.contactEmail !== 'string' ||
-          !['food', 'merch', 'other'].includes(data.venueType)) return []
-      return [{ id: doc.id, uid: data.uid, venueSize: data.venueSize, status: data.status, companyName: data.companyName, contactEmail: data.contactEmail, venueType: data.venueType, ...(typeof data.denialReason === 'string' ? { denialReason: data.denialReason } : {}) }]
+          !['food', 'merch', 'other'].includes(data.venueType) ||
+          !['A', 'B', 'C', 'D', 'E'].includes(data.section)) return []
+      return [{ id: doc.id, uid: data.uid, venueSize: data.venueSize, status: data.status, companyName: data.companyName, contactEmail: data.contactEmail, venueType: data.venueType, section: data.section, ...(typeof data.denialReason === 'string' ? { denialReason: data.denialReason } : {}) }]
     })
     return { success: true, data: bookings }
   } catch {
@@ -57,6 +59,17 @@ export async function decideBooking(input: unknown): Promise<ActionResult<string
       const snapshot = await tx.get(ref)
       if (!snapshot.exists) throw new Error('NOT_FOUND')
       if (snapshot.data()?.status !== 'requested') throw new Error('NOT_PENDING')
+      if (parsed.data.status === 'approved') {
+        const section = snapshot.data()?.section
+        if (!['A', 'B', 'C', 'D', 'E'].includes(section)) throw new Error('INVALID_SECTION')
+        // A shared section document serialises competing approvals.
+        const capacityRef = adminDb.collection('bookingSectionCapacityLocks').doc(section)
+        await tx.get(capacityRef)
+        const approved = await tx.get(adminDb.collection('bookings')
+          .where('status', '==', 'approved'))
+        if (approved.docs.filter((doc) => doc.data().section === section).length >= 5) throw new Error('SECTION_FULL')
+        tx.set(capacityRef, { updatedAt: Timestamp.now() })
+      }
       tx.update(ref, {
         status: parsed.data.status,
         updatedAt: Timestamp.now(),
@@ -65,6 +78,8 @@ export async function decideBooking(input: unknown): Promise<ActionResult<string
     })
     return { success: true, data: parsed.data.bookingId }
   } catch (error) {
+    if (error instanceof Error && error.message === 'SECTION_FULL') return { success: false, error: 'Section is at capacity. Approval is not possible.' }
+    if (error instanceof Error && error.message === 'INVALID_SECTION') return { success: false, error: 'Booking has an invalid section' }
     if (error instanceof Error && error.message === 'NOT_FOUND') return { success: false, error: 'Booking not found' }
     if (error instanceof Error && error.message === 'NOT_PENDING') return { success: false, error: 'Only requested bookings can be reviewed' }
     return { success: false, error: 'Failed to update booking status' }

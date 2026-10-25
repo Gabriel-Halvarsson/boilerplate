@@ -1,11 +1,12 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { where } from 'firebase/firestore'
-import { createBooking } from '@/features/bookings/actions/bookings.actions'
+import { createBooking, getSectionCapacity, type SectionCapacity } from '@/features/bookings/actions/bookings.actions'
 import { useCollection } from '@/hooks/useFirestore'
 import { useAuth } from '@/hooks/useAuth'
 import { getBookingsCollection } from '@/lib/firebase/firestore'
@@ -14,12 +15,24 @@ const bookingFormSchema = z.object({
   companyName: z.string().trim().min(1, 'Company name is required').max(200),
   contactEmail: z.string().trim().email('Enter a valid contact email').max(254),
   venueType: z.enum(['food', 'merch', 'other']),
+  section: z.enum(['A', 'B', 'C', 'D', 'E']),
   venueSize: z.enum(['small', 'medium', 'large']),
 })
 type BookingFormInput = z.infer<typeof bookingFormSchema>
 
 export function CreateBookingForm() {
   const { user } = useAuth()
+  const [capacity, setCapacity] = useState<SectionCapacity | null>(null)
+  useEffect(() => {
+    let active = true
+    const refresh = async () => {
+      const result = await getSectionCapacity()
+      if (active) setCapacity(result.success ? result.data ?? null : null)
+    }
+    void refresh()
+    window.addEventListener('focus', refresh)
+    return () => { active = false; window.removeEventListener('focus', refresh) }
+  }, [])
   const { data: bookings, loading } = useCollection(
     getBookingsCollection(),
     where('uid', '==', user?.uid ?? '')
@@ -27,12 +40,14 @@ export function CreateBookingForm() {
   const hasRequestedBooking = bookings.some((booking) => booking.status === 'requested')
   const { register, setValue, watch, handleSubmit, formState: { errors, isSubmitting } } = useForm<BookingFormInput>({
     resolver: zodResolver(bookingFormSchema),
-    defaultValues: { companyName: '', contactEmail: '', venueType: 'food', venueSize: 'small' },
+    defaultValues: { companyName: '', contactEmail: '', venueType: 'food', section: 'A', venueSize: 'small' },
   })
   const selectedSize = watch('venueSize')
+  const selectedSection = watch('section')
+  const sectionFull = capacity !== null && capacity[selectedSection] >= 5
 
   const onSubmit = async (data: BookingFormInput) => {
-    if (hasRequestedBooking) return
+    if (hasRequestedBooking || sectionFull || !capacity) return
     const result = await createBooking(data)
     if (result.success) toast.success('Venue requested')
     else toast.error(result.error ?? 'Failed to request venue')
@@ -91,15 +106,24 @@ export function CreateBookingForm() {
         {errors.venueType && <p className="text-xs text-red-500" role="alert">{errors.venueType.message}</p>}
       </div>
       <div className="space-y-2">
+        <label htmlFor="section" className="text-sm font-medium">Albert Park Section</label>
+        <select id="section" {...register('section')} className="w-full rounded-md border px-3 py-2 text-sm">
+          {(['A', 'B', 'C', 'D', 'E'] as const).map((section) => (
+            <option key={section} value={section}>Albert Park Section {section}</option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-2">
         <label className="text-sm font-medium">Venue Size</label>
         <div className="grid grid-cols-3 gap-3">
           {(['small', 'medium', 'large'] as const).map((size) => (
             <button
               key={size}
               type="button"
+              disabled={sectionFull || !capacity}
               onClick={() => setValue('venueSize', size, { shouldValidate: true })}
               aria-pressed={selectedSize === size}
-              className={`rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
+              className={`rounded-lg border px-4 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                 selectedSize === size
                   ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-black'
                   : 'border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800'
@@ -111,6 +135,9 @@ export function CreateBookingForm() {
         </div>
         {errors.venueSize && <p className="text-xs text-red-500">{errors.venueSize.message}</p>}
       </div>
+      {sectionFull && (
+        <p className="text-sm text-zinc-500" role="status">Section {selectedSection} is at capacity.</p>
+      )}
       {hasRequestedBooking && (
         <p className="text-sm text-zinc-500" role="status">
           You already have a requested booking. You can request another venue once it is approved or denied.
@@ -118,7 +145,7 @@ export function CreateBookingForm() {
       )}
       <button
         type="submit"
-        disabled={isSubmitting || loading || !user || hasRequestedBooking}
+        disabled={isSubmitting || loading || !user || hasRequestedBooking || sectionFull || !capacity}
         className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
       >
         {isSubmitting ? 'Requesting…' : 'Request Venue'}
