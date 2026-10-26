@@ -97,16 +97,16 @@ export default function SignUpPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
           <label htmlFor="displayName" className="text-sm font-medium">
-            Name
+            Company Name
           </label>
           <input
             id="displayName"
             type="text"
-            autoComplete="name"
+            autoComplete="organization"
             aria-invalid={!!errors.displayName}
             aria-describedby={errors.displayName ? 'display-name-error' : undefined}
             className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-500 focus:outline-none aria-invalid:border-red-500 dark:border-zinc-700 dark:bg-zinc-900"
-            placeholder="Your full name"
+            placeholder="Your company name"
             {...register('displayName')}
           />
           {errors.displayName && (

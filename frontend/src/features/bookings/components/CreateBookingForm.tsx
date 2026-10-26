@@ -21,7 +21,7 @@ const bookingFormSchema = z.object({
 type BookingFormInput = z.infer<typeof bookingFormSchema>
 
 export function CreateBookingForm() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [capacity, setCapacity] = useState<SectionCapacity | null>(null)
   useEffect(() => {
     let active = true
@@ -38,10 +38,23 @@ export function CreateBookingForm() {
     where('uid', '==', user?.uid ?? '')
   )
   const hasRequestedBooking = bookings.some((booking) => booking.status === 'requested')
-  const { register, setValue, watch, handleSubmit, formState: { errors, isSubmitting } } = useForm<BookingFormInput>({
+  const { register, setValue, watch, handleSubmit, formState: { errors, isSubmitting, dirtyFields } } = useForm<BookingFormInput>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: { companyName: '', contactEmail: '', venueType: 'food', section: 'A', venueSize: 'small' },
   })
+  // Prefill only untouched fields so profile loading never overwrites user edits
+  useEffect(() => {
+    if (profile?.displayName && !dirtyFields.companyName) {
+      setValue('companyName', profile.displayName, { shouldDirty: false })
+    }
+  }, [profile?.displayName, dirtyFields.companyName, setValue])
+
+  useEffect(() => {
+    if (user?.email && !dirtyFields.contactEmail) {
+      setValue('contactEmail', user.email, { shouldDirty: false })
+    }
+  }, [user?.email, dirtyFields.contactEmail, setValue])
+
   const selectedSize = watch('venueSize')
   const selectedSection = watch('section')
   const sectionFull = capacity !== null && capacity[selectedSection] >= 5
