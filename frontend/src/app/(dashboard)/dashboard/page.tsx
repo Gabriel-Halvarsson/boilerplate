@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { CalendarDays, ClipboardCheck, User } from 'lucide-react'
 import { getServerSession } from '@/actions/auth.actions'
 import { adminDb } from '@/lib/firebase/admin'
 
@@ -9,11 +11,31 @@ export const metadata: Metadata = {
 export default async function DashboardPage() {
   const session = await getServerSession()
   const profileSnap = session ? await adminDb.collection('users').doc(session.uid).get() : null
-
-  const displayName = profileSnap?.exists
-    ? (profileSnap.data()?.displayName as string | null)
-    : null
+  const profile = profileSnap?.data()
+  const displayName = profileSnap?.exists ? (profile?.displayName as string | null) : null
   const greetingName = displayName ?? session?.email ?? null
+  const isAdmin = profile?.role === 'admin'
+
+  const links = [
+    {
+      href: '/bookings',
+      title: 'Bookings',
+      description: 'Request a venue at the Australian F1 Grand Prix and view your existing bookings.',
+      icon: CalendarDays,
+    },
+    {
+      href: '/profile',
+      title: 'Profile',
+      description: 'View your company profile and account information.',
+      icon: User,
+    },
+    ...(isAdmin ? [{
+      href: '/manage-bookings',
+      title: 'Manage Bookings',
+      description: 'Review venue requests from all vendors and approve or deny pending bookings.',
+      icon: ClipboardCheck,
+    }] : []),
+  ]
 
   return (
     <div className="space-y-6">
@@ -25,14 +47,18 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {(['Metric One', 'Metric Two', 'Metric Three'] as const).map((title) => (
-          <div
-            key={title}
-            className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+        {links.map(({ href, title, description, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className="block rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition-colors hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
           >
-            <p className="text-sm font-medium text-zinc-500">{title}</p>
-            <p className="mt-2 text-3xl font-bold">—</p>
-          </div>
+            <div className="flex items-center gap-3">
+              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <h2 className="text-lg font-semibold">{title}</h2>
+            </div>
+            <p className="mt-3 text-sm text-zinc-500">{description}</p>
+          </Link>
         ))}
       </div>
     </div>
