@@ -73,7 +73,6 @@ export function ManageBookingsList() {
                   <p className="text-sm">{booking.contactEmail}</p>
                   <p className="text-sm">Albert Park Section {booking.section}</p>
                   <p className="text-sm">Venue Type: {booking.venueType.charAt(0).toUpperCase() + booking.venueType.slice(1)}</p>
-                  <p className="text-sm text-zinc-500">Vendor ID: {booking.uid}</p>
                   <p className="text-sm text-zinc-500">Australian Grand Prix</p>
                 </div>
                 <span className="shrink-0 rounded-md border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-medium capitalize dark:border-zinc-700 dark:bg-zinc-800">{booking.status}</span>

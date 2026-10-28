@@ -1,8 +1,6 @@
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   sendEmailVerification,
@@ -10,10 +8,6 @@ import {
   type User,
 } from 'firebase/auth'
 import { getClientAuth } from './client'
-
-const googleProvider = new GoogleAuthProvider()
-googleProvider.addScope('email')
-googleProvider.addScope('profile')
 
 export async function signInWithEmail(email: string, password: string): Promise<User> {
   const result = await signInWithEmailAndPassword(getClientAuth(), email, password)
@@ -39,11 +33,6 @@ export async function signUpWithEmail(
   await sendEmailVerification(result.user)
   await firebaseSignOut(getClientAuth())
 
-  return result.user
-}
-
-export async function signInWithGoogle(): Promise<User> {
-  const result = await signInWithPopup(getClientAuth(), googleProvider)
   return result.user
 }
 

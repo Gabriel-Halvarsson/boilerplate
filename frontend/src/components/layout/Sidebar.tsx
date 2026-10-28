@@ -1,11 +1,10 @@
 import Link from 'next/link'
-import { LayoutDashboard, CalendarDays, ClipboardCheck, User, Settings } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, ClipboardCheck, User } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/bookings', label: 'Bookings', icon: CalendarDays },
   { href: '/profile', label: 'Profile', icon: User },
-  { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export function Sidebar({ isAdmin }: { isAdmin: boolean }) {

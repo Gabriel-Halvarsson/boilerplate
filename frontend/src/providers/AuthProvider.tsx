@@ -7,7 +7,6 @@ import { getClientAuth, getClientDb } from '@/lib/firebase/client'
 import {
   signInWithEmail as fbSignInWithEmail,
   signUpWithEmail as fbSignUpWithEmail,
-  signInWithGoogle as fbSignInWithGoogle,
   signOut as fbSignOut,
   getIdToken,
 } from '@/lib/firebase/auth'
@@ -117,11 +116,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fbSignUpWithEmail(email, password, displayName)
   }
 
-  const signInWithGoogle = async () => {
-    await fbSignInWithGoogle()
-    await setSessionCookie()
-  }
-
   const signOut = async () => {
     // Clear server session cookie first so proxy no longer treats the user as authenticated.
     await clearSessionCookie()
@@ -138,7 +132,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         signInWithEmail,
         signUpWithEmail,
-        signInWithGoogle,
         signOut,
       }}
     >
