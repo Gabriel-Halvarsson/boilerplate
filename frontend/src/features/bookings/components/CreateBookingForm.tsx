@@ -67,8 +67,8 @@ export function CreateBookingForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-lg border p-4">
-      <div className="space-y-2">
+    <form onSubmit={handleSubmit(onSubmit)} className="gp-panel gp-booking-form">
+      <div className="gp-form-field">
         <label htmlFor="companyName" className="text-sm font-medium">Company Name</label>
         <input
           id="companyName"
@@ -86,7 +86,7 @@ export function CreateBookingForm() {
           </p>
         )}
       </div>
-      <div className="space-y-2">
+      <div className="gp-form-field">
         <label htmlFor="contactEmail" className="text-sm font-medium">Contact Email</label>
         <input
           id="contactEmail"
@@ -104,7 +104,7 @@ export function CreateBookingForm() {
           </p>
         )}
       </div>
-      <div className="space-y-2">
+      <div className="gp-form-field">
         <label htmlFor="venueType" className="text-sm font-medium">Venue Type</label>
         <select
           id="venueType"
@@ -118,7 +118,7 @@ export function CreateBookingForm() {
         </select>
         {errors.venueType && <p className="text-xs text-red-500" role="alert">{errors.venueType.message}</p>}
       </div>
-      <div className="space-y-2">
+      <div className="gp-form-field">
         <label htmlFor="section" className="text-sm font-medium">Albert Park Section</label>
         <select id="section" {...register('section')} className="w-full rounded-md border px-3 py-2 text-sm">
           {(['A', 'B', 'C', 'D', 'E'] as const).map((section) => (
@@ -126,9 +126,9 @@ export function CreateBookingForm() {
           ))}
         </select>
       </div>
-      <div className="space-y-2">
+      <div className="gp-form-field">
         <label className="text-sm font-medium">Venue Size</label>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="gp-size-grid">
           {(['small', 'medium', 'large'] as const).map((size) => (
             <button
               key={size}
@@ -159,7 +159,7 @@ export function CreateBookingForm() {
       <button
         type="submit"
         disabled={isSubmitting || loading || !user || hasRequestedBooking || sectionFull || !capacity}
-        className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+        className="gp-primary-button"
       >
         {isSubmitting ? 'Requesting…' : 'Request Venue'}
       </button>

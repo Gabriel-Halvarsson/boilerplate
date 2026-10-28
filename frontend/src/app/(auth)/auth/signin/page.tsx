@@ -53,13 +53,13 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="gp-auth-inner">
       <div className="space-y-1 text-center">
         <h1 className="text-2xl font-bold tracking-tight">Sign in</h1>
         <p className="text-sm text-zinc-500">Enter your credentials to continue</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="gp-auth-form">
         <div className="space-y-1.5">
           <label htmlFor="email" className="text-sm font-medium">
             Email

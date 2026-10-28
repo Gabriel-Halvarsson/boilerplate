@@ -44,12 +44,12 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="gp-auth-inner">
       <div className="space-y-1 text-center">
         <h1 className="text-2xl font-bold tracking-tight">Create account</h1>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="gp-auth-form">
         <div className="space-y-1.5">
           <label htmlFor="displayName" className="text-sm font-medium">
             Company Name

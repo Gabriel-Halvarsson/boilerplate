@@ -50,7 +50,7 @@ export function ManageBookingsList() {
 
   const visible = bookings.filter((booking) => filter === 'all' || booking.status === filter)
   return (
-    <section className="space-y-4">
+    <section className="gp-panel gp-manage-list">
       <div className="flex flex-wrap gap-2">
         {filters.map(({ value, label }) => (
           <button key={value} type="button" onClick={() => setFilter(value)}
@@ -75,7 +75,9 @@ export function ManageBookingsList() {
                   <p className="text-sm">Venue Type: {booking.venueType.charAt(0).toUpperCase() + booking.venueType.slice(1)}</p>
                   <p className="text-sm text-zinc-500">Australian Grand Prix</p>
                 </div>
-                <span className="shrink-0 rounded-md border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-medium capitalize dark:border-zinc-700 dark:bg-zinc-800">{booking.status}</span>
+                <span data-status={booking.status} className="shrink-0 rounded-md px-3 py-1 text-xs font-semibold capitalize">
+                  {booking.status === 'requested' ? 'Pending' : booking.status}
+                </span>
               </div>
               {booking.status === 'requested' && (
                 <div className="flex gap-2">
@@ -108,9 +110,11 @@ export function ManageBookingsList() {
                 </div>
               )}
               {booking.status === 'denied' && booking.denialReason && (
-                <div className="rounded-md bg-zinc-100 p-3 text-sm dark:bg-zinc-900">
-                  <p className="font-medium">Reason for denial</p>
-                  <p className="mt-1 whitespace-pre-wrap text-zinc-600 dark:text-zinc-300">{booking.denialReason}</p>
+                <div className="rounded-md border border-white/40 bg-white/5 p-3 text-sm">
+                  <p className="font-medium text-white">Reason for Denial</p>
+                  <p className="mt-1 whitespace-pre-wrap text-purple-100">
+                    {booking.denialReason}
+                  </p>
                 </div>
               )}
             </li>

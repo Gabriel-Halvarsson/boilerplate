@@ -69,8 +69,8 @@ export function BookingsList() {
   if (loading) return <LoadingSpinner />
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold">Your Bookings</h2>
+    <section className="gp-panel gp-booking-list">
+      <h2 className="text-lg font-semibold">Your Bookings</h2><p className="gp-list-subtitle">View and manage your existing venue requests.</p>
       {bookings.length === 0 ? <EmptyState title="No venue requests yet" /> : (
         <ul className="space-y-2">
           {bookings.map((booking) => (
@@ -88,8 +88,8 @@ export function BookingsList() {
                   <p className="mt-1 text-sm">Venue Type: {booking.venueType.charAt(0).toUpperCase() + booking.venueType.slice(1)}</p>
                   <p className="mt-1 text-sm text-zinc-500">Australian Grand Prix</p>
                 </div>
-                <span className="shrink-0 rounded-md border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                  {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                <span data-status={booking.status} className="shrink-0 rounded-md px-3 py-1 text-xs font-semibold capitalize">
+                  {booking.status === 'requested' ? 'Pending' : booking.status}
                 </span>
               </div>
               {booking.status === 'denied' && booking.denialReason && (

@@ -1,26 +1,748 @@
 @import "tailwindcss";
 
+/* ========================================
+   1. Theme Variables
+   ======================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #241744;
+  --foreground: #fff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ========================================
+   2. Global Styles
+   ======================================== */
+
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #241744;
+  color: #fff;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition: background .15s, border-color .15s;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* ========================================
+   3. Application Layout
+   ======================================== */
+
+.gp-shell {
+  min-height: 100vh;
+  display: flex;
+  background: radial-gradient(
+    ellipse at 57% 12%,
+    #6825e2 0%,
+    #4e269b 35%,
+    #2b1b51 85%
+  );
+}
+
+.gp-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.gp-content {
+  padding: 26px 30px 50px;
+  max-width: 1600px;
+  margin: auto;
+}
+
+/* ========================================
+   4. Sidebar and Navigation
+   ======================================== */
+
+.gp-sidebar {
+  width: 268px;
+  flex-shrink: 0;
+  background: linear-gradient(155deg, #2b1a5c, #20163c);
+  border-right: 1px solid #ffffff25;
+  min-height: 100vh;
+}
+
+.gp-brand {
+  height: 79px;
+  border-bottom: 1px solid #ffffff24;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 28px;
+  text-decoration: none;
+}
+
+.gp-brand strong {
+  font-size: 21px;
+  letter-spacing: -.6px;
+}
+
+.gp-brand span {
+  font-size: 14px;
+  color: #c7b9e8;
+}
+
+.gp-nav {
+  padding: 18px 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.gp-nav a {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 15px 21px;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #eee6ff;
+  text-decoration: none;
+}
+
+.gp-nav a.active,
+.gp-nav a:hover {
+  background: #6530d0a8;
+  color: white;
+}
+
+/* ========================================
+   5. Top Navigation Bar
+   ======================================== */
+
+.gp-navbar {
+  height: 79px;
+  background: #241744cc;
+  border-bottom: 1px solid #ffffff24;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 31px;
+}
+
+.gp-mobile-brand {
+  display: none;
+}
+
+.gp-account {
+  display: flex;
+  align-items: center;
+  gap: 21px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gp-avatar {
+  width: 43px;
+  height: 43px;
+  background: #6929e8;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.gp-account button {
+  padding-left: 20px;
+  border-left: 1px solid #ffffff2b;
+  color: #ddc9ff;
+}
+
+/* ========================================
+   6. Page Headings
+   ======================================== */
+
+.gp-page-head {
+  margin-bottom: 27px;
+}
+
+.gp-eyebrow {
+  display: block;
+  letter-spacing: 5px;
+  font-size: 12px;
+  color: #dfceff;
+  margin-bottom: 10px;
+}
+
+.gp-page-head h1 {
+  font-size: 36px;
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: -.7px;
+}
+
+.gp-page-head p {
+  font-size: 18px;
+  color: #d8c8f4;
+  margin-top: 9px;
+}
+
+/* ========================================
+   7. Dashboard Cards
+   ======================================== */
+
+.gp-dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.gp-dashboard-card,
+.gp-panel {
+  border: 1px solid #ffffff29;
+  background: #ffffff0a;
+  border-radius: 13px;
+}
+
+.gp-dashboard-card {
+  min-height: 174px;
+  padding: 24px;
+  display: flex;
+  gap: 24px;
+  position: relative;
+  color: white;
+}
+
+.gp-dashboard-card:hover {
+  background: #ffffff16;
+}
+
+.gp-icon {
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: #7432e6;
+  border-radius: 12px;
+}
+
+.gp-dashboard-card h2 {
+  font-size: 21px;
+  font-weight: 700;
+  margin: 7px 0;
+}
+
+.gp-dashboard-card p {
+  color: #d7c8f2;
+  line-height: 1.7;
+  font-size: 15px;
+  padding-right: 16px;
+}
+
+.gp-card-arrow {
+  position: absolute;
+  right: 19px;
+  top: 26px;
+  border-radius: 50%;
+  background: #7939e8;
+  padding: 8px;
+}
+
+/* ========================================
+   8. Shared Panels
+   ======================================== */
+
+.gp-panel {
+  padding: 26px;
+  margin-bottom: 16px;
+}
+
+.gp-panel h2 {
+  font-size: 23px;
+  font-weight: 700;
+}
+
+/* ========================================
+   9. Booking Request Form
+   ======================================== */
+
+.gp-booking-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 24px;
+}
+
+.gp-booking-form > .gp-form-field:nth-of-type(5),
+.gp-booking-form > .gp-size-grid {
+  grid-column: 1 / -1;
+}
+
+.gp-booking-form > .gp-form-field:has(.gp-size-grid) {
+  grid-column: 1 / -1;
+}
+
+.gp-form-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gp-form-field input,
+.gp-form-field select,
+.gp-profile-field input,
+.gp-auth input,
+.gp-panel textarea,
+.gp-panel select,
+.gp-panel input:not([type=radio]) {
+  background: #ffffff0b;
+  border: 1px solid #ffffff32;
+  border-radius: 8px;
+  color: white;
+  min-height: 45px;
+  padding: 10px 14px;
+  outline: none;
+}
+
+.gp-form-field input,
+.gp-form-field select {
+  width: 100%;
+}
+
+.gp-panel input::placeholder,
+.gp-auth input::placeholder {
+  color: #c8b7e6;
+}
+
+.gp-panel input:focus,
+.gp-panel select:focus,
+.gp-auth input:focus {
+  border-color: #a779ff;
+}
+
+.gp-panel select option {
+  background: #33205d;
+  color: white;
+}
+
+/* ========================================
+   10. Venue Size Selection
+   ======================================== */
+
+.gp-size-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.gp-size-grid button {
+  min-height: 68px;
+  border: 1px solid #ffffff24;
+  border-radius: 10px;
+  background: #ffffff0a;
+  color: white;
+}
+
+.gp-size-grid button[aria-pressed=true] {
+  background: #7830e06b;
+  border-color: #a364ff;
+}
+
+/* ========================================
+   11. Primary Buttons
+   ======================================== */
+
+.gp-primary-button,
+.gp-landing-actions a:first-child {
+  background: white !important;
+  color: #5b1cc3 !important;
+  border: 0;
+  border-radius: 7px;
+  padding: 12px 30px;
+  font-weight: 700;
+  min-width: 200px;
+}
+
+.gp-primary-button:disabled {
+  opacity: .5;
+}
+
+/* ========================================
+   12. Booking Lists and Management
+   ======================================== */
+
+.gp-booking-list li,
+.gp-manage-list li {
+  background: #ffffff08;
+  border: 1px solid #ffffff22;
+  border-radius: 9px;
+}
+
+.gp-list-subtitle {
+  color: #d8c8f4;
+  margin: 5px 0 15px;
+}
+
+.gp-booking-list li p,
+.gp-manage-list li p {
+  color: #e3d6ff;
+}
+
+.gp-booking-list li span,
+.gp-manage-list li span {
+  color: white;
+}
+
+.gp-manage-list button[aria-pressed=true] {
+  background: white !important;
+  color: #4e1b9c !important;
+}
+
+/* ========================================
+   13. Booking Status Badges
+   ======================================== */
+
+/* Approved - Green */
+
+.gp-booking-list [data-status="approved"],
+.gp-manage-list [data-status="approved"] {
+  background: #15803d !important;
+  color: #ffffff !important;
+}
+
+/* Denied - Red */
+
+.gp-booking-list [data-status="denied"],
+.gp-manage-list [data-status="denied"] {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+/* Pending - Orange */
+
+.gp-booking-list [data-status="requested"],
+.gp-manage-list [data-status="requested"] {
+  background: #d97706 !important;
+  color: #ffffff !important;
+}
+
+/* ========================================
+   14. Account Profile
+   ======================================== */
+
+.gp-profile-panel {
+  max-width: none;
+  padding: 30px;
+}
+
+.gp-profile-row {
+  margin-top: 28px;
+}
+
+.gp-profile-row > label {
+  display: block;
+  color: #d8c8f4;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.gp-profile-control {
+  display: flex;
+  gap: 22px;
+}
+
+.gp-profile-field {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #ffffff0a;
+  border: 1px solid #ffffff30;
+  border-radius: 9px;
+  flex: 1;
+  padding-left: 23px;
+}
+
+.gp-profile-field input {
+  border: 0 !important;
+  background: transparent !important;
+  flex: 1;
+  width: 100%;
+}
+
+.gp-profile-field input:disabled {
+  opacity: 1;
+}
+
+/* ========================================
+   15. Profile Editing Controls
+   ======================================== */
+
+.gp-edit-btn,
+.gp-edit-actions button {
+  border: 1px solid #d7b4ff;
+  border-radius: 9px;
+  padding: 13px 24px;
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #7535dd44;
+}
+
+.gp-edit-actions {
+  display: flex;
+  gap: 9px;
+}
+
+.gp-edit-actions button {
+  min-width: 85px;
+}
+
+/* ========================================
+   16. Authentication and Landing Pages
+   ======================================== */
+
+.gp-auth,
+.gp-landing {
+  min-height: 100vh;
+  background: radial-gradient(
+    ellipse at 20% 0%,
+    #8730ed,
+    #5c319b 45%,
+    #251741 100%
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 28px;
+}
+
+.gp-auth-card,
+.gp-landing-card {
+  width: min(100%, 620px);
+  border: 1px solid #ffffff36;
+  border-radius: 20px;
+  padding: 42px 40px;
+  background: #2b1b4b30;
+}
+
+/* ========================================
+   17. Authentication Forms
+   ======================================== */
+
+.gp-auth-inner h1 {
+  font-size: 38px;
+  font-weight: 750;
+}
+
+.gp-auth-inner > div:first-child {
+  margin-bottom: 28px;
+}
+
+.gp-auth-inner label {
+  font-size: 16px;
+}
+
+.gp-auth-form {
+  display: grid;
+  gap: 18px;
+}
+
+.gp-auth-form input {
+  width: 100%;
+  height: 57px;
+  padding: 15px 18px;
+}
+
+.gp-auth-form button[type=submit] {
+  background: white !important;
+  color: #35146c !important;
+  border-radius: 8px;
+  height: 58px;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.gp-auth-inner > p {
+  margin-top: 22px;
+  color: #ded2f0;
+}
+
+.gp-auth-inner > p a {
+  color: white;
+  font-weight: 700;
+}
+
+/* ========================================
+   18. Landing Page
+   ======================================== */
+
+.gp-landing-card {
+  width: min(100%, 730px);
+  text-align: center;
+  padding: 45px 65px;
+}
+
+.gp-landing h1 {
+  font-size: 43px;
+  font-weight: 750;
+  line-height: 1.27;
+}
+
+.gp-landing p {
+  font-size: 20px;
+  line-height: 1.6;
+  color: #e0d1f2;
+  margin: 24px 0 33px;
+}
+
+.gp-landing-actions {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+}
+
+.gp-landing-actions a {
+  min-width: 170px;
+  text-align: center;
+  padding: 13px 20px;
+  border: 1px solid #ffffff9c;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+/* ========================================
+   19. Responsive Layout - Tablets
+   ======================================== */
+
+@media (max-width: 900px) {
+  .gp-sidebar {
+    width: 205px;
+  }
+
+  .gp-brand {
+    padding: 0 14px;
+  }
+
+  .gp-brand strong {
+    font-size: 17px;
+  }
+
+  .gp-nav a {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .gp-content {
+    padding: 24px 18px;
+  }
+
+  .gp-dashboard-cards {
+    gap: 12px;
+  }
+}
+
+/* ========================================
+   20. Responsive Layout - Mobile
+   ======================================== */
+
+@media (max-width: 650px) {
+  .gp-shell {
+    display: block;
+  }
+
+  .gp-sidebar {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .gp-brand {
+    height: 62px;
+  }
+
+  .gp-nav {
+    display: flex;
+    overflow-x: auto;
+    padding: 8px;
+  }
+
+  .gp-nav a {
+    white-space: nowrap;
+    padding: 9px;
+    font-size: 12px;
+  }
+
+  .gp-nav a svg {
+    width: 16px;
+  }
+
+  .gp-navbar {
+    height: 60px;
+  }
+
+  .gp-account {
+    gap: 10px;
+  }
+
+  .gp-content {
+    padding: 22px 14px;
+  }
+
+  .gp-page-head h1 {
+    font-size: 29px;
+  }
+
+  .gp-page-head p {
+    font-size: 15px;
+  }
+
+  .gp-booking-form {
+    grid-template-columns: 1fr;
+  }
+
+  .gp-size-grid {
+    gap: 6px;
+  }
+
+  .gp-size-grid button {
+    padding: 7px 3px;
+  }
+
+  .gp-profile-control {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .gp-edit-btn {
+    width: 100%;
+  }
+
+  .gp-landing-card,
+  .gp-auth-card {
+    padding: 32px 22px;
+  }
+
+  .gp-landing h1 {
+    font-size: 30px;
+  }
+
+  .gp-landing p {
+    font-size: 16px;
+  }
+
+  .gp-landing-actions {
+    flex-direction: column;
+  }
 }
