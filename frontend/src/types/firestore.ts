@@ -14,7 +14,7 @@ export interface UserProfile {
   email: string
   displayName: string | null
   photoURL: string | null
-  role: 'user'
+  role: 'user' | 'admin'
   createdAt: Timestamp
   updatedAt: Timestamp
   _schemaVersion: 1
@@ -22,11 +22,20 @@ export interface UserProfile {
 
 export type CreateUserProfileInput = Omit<UserProfile, 'createdAt' | 'updatedAt'>
 
-export interface Note {
+export type VenueSize = 'small' | 'medium' | 'large'
+export type VenueType = 'food' | 'merch' | 'other'
+export type AlbertParkSection = 'A' | 'B' | 'C' | 'D' | 'E'
+
+export interface Booking {
   id: string
-  uid: string // owner's user id — used by security rules
-  title: string
-  body: string
+  uid: string
+  venueSize: VenueSize
+  companyName: string
+  contactEmail: string
+  venueType: VenueType
+  section: AlbertParkSection
+  status: 'requested' | 'approved' | 'denied'
+  denialReason?: string
   createdAt: Timestamp
   updatedAt: Timestamp
   _schemaVersion: 1
