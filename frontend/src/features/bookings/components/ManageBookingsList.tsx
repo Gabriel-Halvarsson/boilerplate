@@ -27,7 +27,29 @@ export function ManageBookingsList() {
     setLoading(false)
   }
 
-  useEffect(() => { void refresh() }, [])
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadBookings() {
+      const result = await getAllBookings()
+
+      if (cancelled) return
+
+      if (result.success && result.data) {
+        setBookings(result.data)
+      } else {
+        toast.error(result.error ?? 'Failed to load bookings')
+      }
+
+      setLoading(false)
+    }
+
+    void loadBookings()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   async function decide(bookingId: string, status: 'approved' | 'denied', reason?: string) {
     setBusyId(bookingId)
@@ -68,7 +90,7 @@ export function ManageBookingsList() {
             <li key={booking.id} className="space-y-3 rounded-lg border p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="font-medium">{booking.venueSize[0].toUpperCase() + booking.venueSize.slice(1)} Venue</h3>
+                  <h3 className="font-medium">{booking.venueSize.charAt(0).toUpperCase() + booking.venueSize.slice(1)} Venue</h3>
                   {booking.companyName && <p className="text-sm">{booking.companyName}</p>}
                   <p className="text-sm">{booking.contactEmail}</p>
                   <p className="text-sm">Albert Park Section {booking.section}</p>

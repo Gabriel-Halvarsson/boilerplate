@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -38,7 +38,7 @@ export function CreateBookingForm() {
     where('uid', '==', user?.uid ?? '')
   )
   const hasRequestedBooking = bookings.some((booking) => booking.status === 'requested')
-  const { register, setValue, watch, handleSubmit, formState: { errors, isSubmitting, dirtyFields } } = useForm<BookingFormInput>({
+  const { control, register, setValue, watch, handleSubmit, formState: { errors, isSubmitting, dirtyFields } } = useForm<BookingFormInput>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: { companyName: '', contactEmail: '', venueType: 'food', section: 'A', venueSize: 'small' },
   })
@@ -55,8 +55,15 @@ export function CreateBookingForm() {
     }
   }, [user?.email, dirtyFields.contactEmail, setValue])
 
-  const selectedSize = watch('venueSize')
-  const selectedSection = watch('section')
+  const selectedSize = useWatch({
+    control,
+    name: 'venueSize',
+  })
+
+  const selectedSection = useWatch({
+    control,
+    name: 'section',
+  })
   const sectionFull = capacity !== null && capacity[selectedSection] >= 5
 
   const onSubmit = async (data: BookingFormInput) => {
