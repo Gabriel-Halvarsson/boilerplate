@@ -27,7 +27,29 @@ export function ManageBookingsList() {
     setLoading(false)
   }
 
-  useEffect(() => { void refresh() }, [])
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadBookings() {
+      const result = await getAllBookings()
+
+      if (cancelled) return
+
+      if (result.success && result.data) {
+        setBookings(result.data)
+      } else {
+        toast.error(result.error ?? 'Failed to load bookings')
+      }
+
+      setLoading(false)
+    }
+
+    void loadBookings()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   async function decide(bookingId: string, status: 'approved' | 'denied', reason?: string) {
     setBusyId(bookingId)
